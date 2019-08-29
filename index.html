@@ -6,7 +6,79 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
   </head>
+  <style>
+  
+  </style>
   <body>
-    
+    <div id='root'></div>
+    <script type='text/babel'>
+      const API = 'https://acme-users-api-rev.herokuapp.com/api';
+      const { render } = ReactDOM;
+      const { Component } = React;
+      
+      const fetchUser = async ()=> {
+        const storage = window.localStorage;
+        const userId = storage.getItem('userId'); 
+        if(userId){
+          try {
+            return (await axios.get(`${API}/users/detail/${userId}`)).data;
+          }
+          catch(ex){
+            storage.removeItem('userId');
+            return fetchUser();
+          }
+        }
+        const user = (await axios.get(`${API}/users/random`)).data;
+        storage.setItem('userId', user.id);
+        return  user;
+      };
+      
+      class App extends Component {
+        constructor() {
+          super();
+          this.state = {
+            user : {},
+            vacays : []
+          };
+//          this.update = this.update.bind(this);
+//          this.create = this.create.bind(this);
+//          this.destroy = this.destroy.bind(this);
+        }
+/*
+        async destroy(vacay){
+          await axios.delete(`${API}/users/${this.state.user.id}/vacays/${vacay.id}`);
+          this.setState({ vacays : this.state.vacays.filter( _vacay => _vacay.id !== vacay.id)});
+        }
+*/
+        async componentDidMount(){
+          const user = await fetchUser();
+          const vacays = (await axios.get(`${API}/users/${ user.id }/vacations`)).data;
+          this.setState({ vacays, user });
+        }
+/*
+        async update(vacay){
+          const updated = (await axios.put(`${API}/users/${this.state.user.id}/notes/${vacay.id}`, { text: vacay.date })).data;
+          this.setState({ vacays : this.state.vacays.map( vacay => vacay.id === updated.id ? updated : note)});
+        }
+        async create(note){
+          const created = (await axios.post(`${API}/users/${this.state.user.id}/notes`, vacay)).data;
+          const vacays = [...this.state.vacays, created ];
+          this.setState({ vacays }); 
+        }
+*/
+        render(){
+          const { vacays, user } = this.state;
+          const { update, create, destroy } = this;
+          console.log(user)
+          return (
+            <h1>Acme Vacation Planner for { user.fullName } </h1>
+          )
+        }
+      }
+      
+      const root = document.querySelector('#root');
+      render(<App />, root);
+      
+    </script>
   </body>
 </html>

@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
   </head>
   <style>
-  
+
   </style>
   <body>
     <div id='root'></div>
@@ -15,10 +15,10 @@
       const API = 'https://acme-users-api-rev.herokuapp.com/api';
       const { render } = ReactDOM;
       const { Component } = React;
-      
+
       const fetchUser = async ()=> {
         const storage = window.localStorage;
-        const userId = storage.getItem('userId'); 
+        const userId = storage.getItem('userId');
         if(userId){
           try {
             return (await axios.get(`${API}/users/detail/${userId}`)).data;
@@ -32,7 +32,33 @@
         storage.setItem('userId', user.id);
         return  user;
       };
-      
+
+      class DateForm extends Component{
+        constructor( { startDate, endDate}){
+          super();
+          this.state = {
+            startDate,
+            endDate
+          };
+        }
+        render(){
+          const { onChangeVacay } = this.props;
+          const { startDate, endDate } = this.state;
+          const disabled = false;
+
+          return (
+            <div id='form'>
+              <input value={startDate}  onChange={ (ev)=> this.setState( { startDate: ev.target.value })} />
+              <input value={endDate}  onChange={ (ev)=> this.setState( { endDate: ev.target.value })} />
+              {//<button onClick={ ()=> onChangeVacay(this.state)} disabled={ disabled }>Update</button>
+            }
+            </div>
+          )
+        }
+
+      }
+
+
       class App extends Component {
         constructor() {
           super();
@@ -40,8 +66,7 @@
             user : {},
             vacays : []
           };
-//          this.update = this.update.bind(this);
-//          this.create = this.create.bind(this);
+          this.create = this.create.bind(this);
 //          this.destroy = this.destroy.bind(this);
         }
 /*
@@ -53,32 +78,34 @@
         async componentDidMount(){
           const user = await fetchUser();
           const vacays = (await axios.get(`${API}/users/${ user.id }/vacations`)).data;
+          console.log(vacays);
           this.setState({ vacays, user });
         }
-/*
-        async update(vacay){
-          const updated = (await axios.put(`${API}/users/${this.state.user.id}/notes/${vacay.id}`, { text: vacay.date })).data;
-          this.setState({ vacays : this.state.vacays.map( vacay => vacay.id === updated.id ? updated : note)});
-        }
-        async create(note){
-          const created = (await axios.post(`${API}/users/${this.state.user.id}/notes`, vacay)).data;
+
+        async create(vacay){
+          const created = (await axios.post(`${API}/users/${this.state.user.id}/vacations`, vacay)).data;
           const vacays = [...this.state.vacays, created ];
-          this.setState({ vacays }); 
+          this.setState({ vacays });
         }
-*/
+
+
         render(){
           const { vacays, user } = this.state;
           const { update, create, destroy } = this;
-          console.log(user)
           return (
-            <h1>Acme Vacation Planner for { user.fullName } </h1>
+            <div>
+              <h1>Acme Vacation Planner for { user.fullName } </h1>
+              <DateForm />
+            </div>
           )
+
+
         }
       }
-      
+
       const root = document.querySelector('#root');
       render(<App />, root);
-      
+
     </script>
   </body>
 </html>
